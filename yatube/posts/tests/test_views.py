@@ -86,16 +86,8 @@ class PostsViewsTests(TestCase):
         response = self.authorized_client.get(
             reverse('posts:group_list', kwargs={'slug': 'test_slug'}))
         first_object = response.context['page_obj'][0]
-        test_contex = {
-            first_object.group.title: self.post_1.group.title,
-            first_object.group.description: self.post_1.group.description,
-            first_object.text: self.post_1.text,
-            first_object.author: self.post_1.author,
-            first_object.pub_date: self.post_1.pub_date,
-        }
-        for request, contex in test_contex.items():
-            with self.subTest(contex=contex):
-                self.assertEqual(request, contex)
+        group_post = self.post_1
+        self.assertEqual(group_post, first_object)
 
     def test_profile(self):
         """Шаблон profile сформирован с правильным контекстом."""
