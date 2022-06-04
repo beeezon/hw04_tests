@@ -1,4 +1,5 @@
 from audioop import reverse
+import profile
 
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
@@ -70,16 +71,9 @@ class PostsViewsTests(TestCase):
     def test_index_show_correct_context(self):
         """Шаблон index сформирован с правильным контекстом."""
         response = self.authorized_client.get(reverse('posts:index'))
-        first_object = response.context['page_obj'][0]
-        test_contex = {
-            first_object.text: self.post_1.text,
-            first_object.author: self.post_1.author,
-            first_object.pub_date: self.post_1.pub_date,
-            first_object.group.slug: self.post_1.group.slug,
-        }
-        for request, contex in test_contex.items():
-            with self.subTest(contex=contex):
-                self.assertEqual(request, contex)
+        first_object = response.context['page_obj'][0].text
+        index_post = self.post_1.text
+        self.assertEqual(index_post, first_object)
 
     def test_group_list(self):
         """Шаблон group_lis сформирован с правильным контекстом."""
@@ -93,19 +87,9 @@ class PostsViewsTests(TestCase):
         """Шаблон profile сформирован с правильным контекстом."""
         response = self.authorized_client.get(
             reverse('posts:profile', kwargs={'username': 'TestUser'}))
-        first_object_1 = response.context['author']
-        first_object_2 = response.context['page_obj'][0]
-        first_object_3 = response.context['post_list']
-        test_contex = {
-            first_object_1.username: self.user.username,
-            first_object_2.author: self.post_1.author,
-            first_object_2.pub_date: self.post_1.pub_date,
-            first_object_2.text: self.post_1.text,
-            first_object_3: self.post_count
-        }
-        for request, contex in test_contex.items():
-            with self.subTest(contex=contex):
-                self.assertEqual(request, contex)
+        first_object = response.context['page_obj'][0].text
+        profile_post = self.post_1.text
+        self.assertEqual(profile_post, first_object)
 
     def test_group_check_in(self):
         '''Проверка наличия групп в нужных шаблонах'''
