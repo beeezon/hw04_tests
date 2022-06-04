@@ -85,8 +85,8 @@ class PostsViewsTests(TestCase):
         """Шаблон group_lis сформирован с правильным контекстом."""
         response = self.authorized_client.get(
             reverse('posts:group_list', kwargs={'slug': 'test_slug'}))
-        first_object = response.context['page_obj'][0]
-        group_post = self.post_1
+        first_object = response.context['page_obj'][0].text
+        group_post = self.post_1.text
         self.assertEqual(group_post, first_object)
 
     def test_profile(self):
