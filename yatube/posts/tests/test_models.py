@@ -1,9 +1,6 @@
-from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from ..models import Group, Post
-
-User = get_user_model()
+from ..models import Group, Post, User
 
 
 class PostModelTest(TestCase):
@@ -18,14 +15,13 @@ class PostModelTest(TestCase):
         )
         cls.post = Post.objects.create(
             author=cls.user,
-            text='Тестовая пост',
-
+            text='Текстcболепятнадцатьюсимволоами',
         )
 
     def test_correct_object_name_post(self):
         """Проверяем, что у модели Post корректно работает __str__."""
         post = PostModelTest.post
-        expected_object_name_post = post.text
+        expected_object_name_post = post.text[:15]
         self.assertEqual(expected_object_name_post, str(post))
 
     def test_correct_object_name_group(self):

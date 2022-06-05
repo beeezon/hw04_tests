@@ -1,12 +1,9 @@
 from audioop import reverse
 
-from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from posts.models import Group, Post
-
-User = get_user_model()
+from ..models import Group, Post, User
 
 
 class PaginatorViewsTest(TestCase):
