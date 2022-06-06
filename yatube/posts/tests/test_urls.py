@@ -1,7 +1,9 @@
 from django.test import Client, TestCase
-
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from ..models import Group, Post, User
 from http import HTTPStatus
+from django.urls import include
 
 
 class StaticURLTests(TestCase):
@@ -29,8 +31,8 @@ class StaticURLTests(TestCase):
             '/posts/1/edit/': 'posts/create_post.html',
         }
         cls.forwarding = {
-            '/create/': '/auth/login/?next=/create/',
-            '/posts/1/edit/': '/auth/login/?next=/posts/1/edit/',
+            '/create/': f"{reverse('users:login')}?next=/create/",
+            '/posts/1/edit/': f"{reverse('users:login')}?next=/posts/1/edit/",
         }
 
     def setUp(self):
