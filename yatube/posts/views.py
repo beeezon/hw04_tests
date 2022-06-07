@@ -80,7 +80,11 @@ def post_edit(request, post_id):
         return HttpResponseRedirect(
             reverse('posts:post_detail', args=[post_id]))
     is_edit = True
-    form = PostForm(request.POST, instance=editable_post)
+    form = PostForm(
+        request.POST or None,
+        files=request.FILES or None,
+        instance=editable_post,
+    )
     if form.is_valid():
         form.save()
         return HttpResponseRedirect(
