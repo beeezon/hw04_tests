@@ -1,11 +1,21 @@
 from audioop import reverse
+import tempfile
+import shutil
 
-from django.test import Client, TestCase
+import time
+
+from django.conf import settings
+from django.test import Client, TestCase, override_settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 from ..models import Group, Post, User
 
 
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
+
+
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostsViewsTests(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -24,16 +34,43 @@ class PostsViewsTests(TestCase):
         )
 
         cls.post_1 = Post.objects.create(
-            text='Тестовый текст',
+            text='Тестовый текст 1',
             author=cls.user,
             group=cls.group,
         )
+        time.sleep(0.1)
         cls.post_2 = Post.objects.create(
-            text='Тестовый текст',
+            text='Тестовый текст 2',
             author=cls.user,
             group=cls.group
         )
+        time.sleep(0.1)
+
+        small_gif = (            
+             b'\x47\x49\x46\x38\x39\x61\x02\x00'
+             b'\x01\x00\x80\x00\x00\x00\x00\x00'
+             b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+             b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+             b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+             b'\x0A\x00\x3B'
+        )
+        uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=small_gif,
+            content_type='image/gif'
+        )
+        cls.post_image = Post.objects.create(
+            text='Тестовый текст 3, c картинкой',
+            author=cls.user,
+            group=cls.group,
+            image=uploaded
+        )
         cls.post_count = len(Post.objects.all())
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def setUp(self):
         # Устанавливаем данные для тестирования
@@ -41,6 +78,7 @@ class PostsViewsTests(TestCase):
         self.guest_client = Client()
         # Создаем авторизованый клиент
         self.authorized_client = Client()
+
         self.authorized_client.force_login(self.user)
 
     def test_pages_uses_correct_template(self):
@@ -67,7 +105,7 @@ class PostsViewsTests(TestCase):
     def test_index_show_correct_context(self):
         """Шаблон index сформирован с правильным контекстом."""
         response = self.authorized_client.get(reverse('posts:index'))
-        first_object = response.context['page_obj'][0].text
+        first_object = response.context['page_obj'][2].text
         index_post = self.post_1.text
         self.assertEqual(index_post, first_object)
 
@@ -75,7 +113,7 @@ class PostsViewsTests(TestCase):
         """Шаблон group_lis сформирован с правильным контекстом."""
         response = self.authorized_client.get(
             reverse('posts:group_list', kwargs={'slug': 'test_slug'}))
-        first_object = response.context['page_obj'][0].text
+        first_object = response.context['page_obj'][2].text
         group_post = self.post_1.text
         self.assertEqual(group_post, first_object)
 
@@ -83,7 +121,7 @@ class PostsViewsTests(TestCase):
         """Шаблон profile сформирован с правильным контекстом."""
         response = self.authorized_client.get(
             reverse('posts:profile', kwargs={'username': 'TestUser'}))
-        first_object = response.context['page_obj'][0].text
+        first_object = response.context['page_obj'][2].text
         profile_post = self.post_1.text
         self.assertEqual(profile_post, first_object)
 
@@ -103,3 +141,38 @@ class PostsViewsTests(TestCase):
         templates = reverse('posts:group_list', kwargs={'slug': 'test_slug'})
         response = self.guest_client.get(templates)
         self.assertNotIn(self.group, response.context['page_obj'])
+
+    def test_image_index(self):
+        '''Проверка вывода в контекст изображений на главной странице.'''
+        response = self.authorized_client.get(reverse('posts:index'))
+        first_object = response.context['page_obj'][0].image
+        index_post = self.post_image.image
+        self.assertEqual(index_post, first_object)
+
+    def test_image_profile(self):
+        '''Проверка вывода в контекст изображений на страницы профайла.'''
+        response = self.authorized_client.get(reverse('posts:profile', kwargs={'username': 'TestUser'}))
+        first_object = response.context['page_obj'][0].image
+        index_post = self.post_image.image
+        self.assertEqual(index_post, first_object)
+
+    def test_image_group_list(self):
+        '''Проверка вывода в контекст изображений на страницы группы.'''
+        response = self.authorized_client.get(reverse('posts:group_list', kwargs={'slug': 'test_slug'}))
+        first_object = response.context['page_obj'][0].image
+        index_post = self.post_image.image
+        self.assertEqual(index_post, first_object)
+
+    def test_image_post_detail(self):
+        '''Проверка вывода в контекст изображений на страницы отдельного поста.'''
+        response = self.authorized_client.get(reverse('posts:post_detail', kwargs={'post_id': '3'}))
+        first_object = response.context['one_post'].image
+        index_post = self.post_image.image
+        self.assertEqual(index_post, first_object)
+
+
+    def test_time_of_creation(self):
+        print('------------------')
+        print(f'Создан: {self.post_1.pub_date} Пост: {self.post_1.text}')
+        print(f'Создан: {self.post_2.pub_date} Пост: {self.post_2.text}')
+        print(f'Создан: {self.post_image.pub_date} Пост: {self.post_image.text}')
