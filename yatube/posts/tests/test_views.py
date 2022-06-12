@@ -1,16 +1,14 @@
-from audioop import reverse
-import tempfile
 import shutil
-
+import tempfile
 import time
+from audioop import reverse
 
 from django.conf import settings
-from django.test import Client, TestCase, override_settings
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from ..models import Group, Post, User
-
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
