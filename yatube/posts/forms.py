@@ -1,8 +1,9 @@
 from xml.etree.ElementTree import Comment
+
 from django import forms
 from django.forms import Select, Textarea
 
-from .models import Post, Comment
+from .models import Comment, Post
 
 
 class PostForm(forms.ModelForm):
