@@ -6,7 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from ..models import Group, Post, User
+from ..models import Comment, Group, Post, User
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
@@ -40,6 +40,7 @@ class PostFormTests(TestCase):
         shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def setUp(self):
+        self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
@@ -128,3 +129,42 @@ class PostFormTests(TestCase):
                 image='posts/small.gif'
             ).exists()
         )
+
+    def test_add_comment(self):
+        '''Проверка создания комментария авторизованным пользователем.'''
+        comments_count = Comment.objects.count()
+        form_data = {
+            'text': 'Комментарий к посту',
+        }
+        response = self.authorized_client.post(
+            reverse('posts:add_comment', kwargs={'post_id': '1'}),
+            data=form_data,
+            follow=True,
+        )
+        '''Проверяем редрект на страницу profile.'''
+        self.assertRedirects(response, reverse(
+            'posts:post_detail', kwargs={'post_id': '1'}))
+        '''Проверяем изменение общего кол-ва постов.'''
+        self.assertEqual(Comment.objects.count(), comments_count + 1)
+        '''Проверяем пост в БД с наличием нужных полей.'''
+        self.assertTrue(
+            Comment.objects.filter(
+                text='Комментарий к посту',
+            ).exists()
+        )
+        '''Проверяем попытку добавления комментария
+        неавторизованного пользователя.'''
+
+    def test_add_comment_error(self):
+        '''Проверка создания комментария неавторизованным пользователем.'''
+        comments_count = Comment.objects.count()
+        form_data = {
+            'text': 'Комментарий к посту',
+        }
+        self.guest_client.post(
+            reverse('posts:add_comment', kwargs={'post_id': '1'}),
+            data=form_data,
+            follow=True,
+        )
+        '''Проверяем изменение общего кол-ва постов.'''
+        self.assertNotEqual(Comment.objects.count(), comments_count + 1)

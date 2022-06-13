@@ -44,7 +44,7 @@ class PostsViewsTests(TestCase):
         )
         time.sleep(0.1)
 
-        small_gif = (            
+        small_gif = (
              b'\x47\x49\x46\x38\x39\x61\x02\x00'
              b'\x01\x00\x80\x00\x00\x00\x00\x00'
              b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
@@ -149,28 +149,26 @@ class PostsViewsTests(TestCase):
 
     def test_image_profile(self):
         '''Проверка вывода в контекст изображений на страницы профайла.'''
-        response = self.authorized_client.get(reverse('posts:profile', kwargs={'username': 'TestUser'}))
+        response = self.authorized_client.get(reverse('posts:profile', kwargs={
+            'username': 'TestUser'}))
         first_object = response.context['page_obj'][0].image
-        index_post = self.post_image.image
-        self.assertEqual(index_post, first_object)
+        image_profile_post = self.post_image.image
+        self.assertEqual(image_profile_post, first_object)
 
     def test_image_group_list(self):
         '''Проверка вывода в контекст изображений на страницы группы.'''
-        response = self.authorized_client.get(reverse('posts:group_list', kwargs={'slug': 'test_slug'}))
+        response = self.authorized_client.get(
+            reverse('posts:group_list', kwargs={'slug': 'test_slug'}))
         first_object = response.context['page_obj'][0].image
-        index_post = self.post_image.image
-        self.assertEqual(index_post, first_object)
+        image_group_list = self.post_image.image
+        self.assertEqual(image_group_list, first_object)
 
     def test_image_post_detail(self):
-        '''Проверка вывода в контекст изображений на страницы отдельного поста.'''
-        response = self.authorized_client.get(reverse('posts:post_detail', kwargs={'post_id': '3'}))
+        '''Проверка вывода в контекст изображений
+        на страницы отдельного поста.'''
+        response = self.authorized_client.get(
+            reverse('posts:post_detail', kwargs={'post_id': '3'}))
         first_object = response.context['one_post'].image
         index_post = self.post_image.image
+
         self.assertEqual(index_post, first_object)
-
-
-    def test_time_of_creation(self):
-        print('------------------')
-        print(f'Создан: {self.post_1.pub_date} Пост: {self.post_1.text}')
-        print(f'Создан: {self.post_2.pub_date} Пост: {self.post_2.text}')
-        print(f'Создан: {self.post_image.pub_date} Пост: {self.post_image.text}')
