@@ -1,7 +1,8 @@
+from xml.etree.ElementTree import Comment
 from django import forms
 from django.forms import Select, Textarea
 
-from .models import Post
+from .models import Post, Comment
 
 
 class PostForm(forms.ModelForm):
@@ -23,3 +24,19 @@ class PostForm(forms.ModelForm):
                 'id': "id_group",
             })
         }
+
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ('text',)
+        widgets = {
+            'text': Textarea(attrs={
+                'class': "form-control",
+                'name': "text",
+                'required id': "id_text",
+                'cols': "40",
+                'rows': "10",
+            }),
+        }
+

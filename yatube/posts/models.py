@@ -52,3 +52,30 @@ class Post(models.Model):
         upload_to='posts/',
         blank=True
     )
+
+
+class Comment(models.Model):
+    '''Модель комментариев.'''
+    def __str__(self):
+        return self.text[:10]
+
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Комментарий'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Автор'
+    )
+    text = models.TextField(
+        verbose_name='Текст комментария',
+        help_text='Текст комментария'
+    )
+    created = models.DateTimeField(
+        verbose_name='Дата публикации комментария',
+        auto_now_add=True
+    )

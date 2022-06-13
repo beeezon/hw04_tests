@@ -1,11 +1,12 @@
+from xml.etree.ElementTree import Comment
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
-from .forms import PostForm
-from .models import Group, Post, User
+from .forms import PostForm, CommentForm
+from .models import Group, Post, User, Comment
 
 NUMBER_DISPLAYED_OBJECTS = 10
 
@@ -50,9 +51,13 @@ def post_detail(request, post_id):
     '''Выводим один конкретный пост.'''
     one_post = get_object_or_404(Post, pk=post_id)
     count_posts = one_post.author.posts.count()
+    comments = one_post.comments.all() # тут надо поменять на relate_name
+    form = CommentForm(request.POST or None)
     context = {
         'one_post': one_post,
         'count_posts': count_posts,
+        'form': form,
+        'comments': comments,
     }
     return render(request, 'posts/post_detail.html', context)
 
@@ -105,3 +110,14 @@ def paginator(post, request):
     page_number = request.GET.get('page')
     page_obj = paginator_object.get_page(page_number)
     return page_obj
+
+
+@login_required
+def add_comment(request, post_id):
+    form = CommentForm(request.POST or None)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.author = request.user
+        comment.post = get_object_or_404(Post, pk=post_id)
+        comment.save()
+    return redirect('posts:post_detail', post_id=post_id) 
