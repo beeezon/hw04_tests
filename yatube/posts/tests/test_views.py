@@ -177,9 +177,13 @@ class PostsViewsTests(TestCase):
 
     def test_cache(self):
         '''Тестирование кеша главной страницы.'''
+        test_cache = Post.objects.create(
+            text='Тест кеша',
+            author=self.user,
+        )
         response_before = self.authorized_client.get(
             reverse('posts:index')).content
-        self.post_1.delete()
+        test_cache.delete()
         response_after = self.authorized_client.get(
             reverse('posts:index')).content
         self.assertEqual(response_before, response_after)
