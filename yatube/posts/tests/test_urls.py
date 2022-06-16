@@ -1,5 +1,6 @@
 from http import HTTPStatus
 
+from django.core.cache import cache
 from django.test import Client, TestCase
 from django.urls import reverse
 
@@ -42,6 +43,7 @@ class StaticURLTests(TestCase):
         # Создаем авторизованый клиент
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+        cache.clear()
 
     def test_authorized_user_templates(self):
         """Проверка соответствующих шаблонов авторизованного пользователя."""

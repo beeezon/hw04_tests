@@ -40,4 +40,3 @@ class CommentForm(forms.ModelForm):
                 'rows': "10",
             }),
         }
-

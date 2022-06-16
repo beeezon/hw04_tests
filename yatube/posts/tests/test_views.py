@@ -4,6 +4,7 @@ import time
 from audioop import reverse
 
 from django.conf import settings
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
@@ -78,6 +79,7 @@ class PostsViewsTests(TestCase):
         self.authorized_client = Client()
 
         self.authorized_client.force_login(self.user)
+        cache.clear()
 
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
@@ -168,7 +170,12 @@ class PostsViewsTests(TestCase):
         на страницы отдельного поста.'''
         response = self.authorized_client.get(
             reverse('posts:post_detail', kwargs={'post_id': '3'}))
-        first_object = response.context['one_post'].image
+        first_object = response.context['post'].image
         index_post = self.post_image.image
 
         self.assertEqual(index_post, first_object)
+
+    def test_kesh(self):
+        '''Тестирование кеша главной страницы.'''
+        response = self.authorized_client.get(reverse('posts:index'))
+        print(response)
