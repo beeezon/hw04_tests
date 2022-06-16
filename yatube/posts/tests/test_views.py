@@ -175,7 +175,15 @@ class PostsViewsTests(TestCase):
 
         self.assertEqual(index_post, first_object)
 
-    def test_kesh(self):
+    def test_cache(self):
         '''Тестирование кеша главной страницы.'''
-        response = self.authorized_client.get(reverse('posts:index'))
-        print(response)
+        response_before = self.authorized_client.get(
+            reverse('posts:index')).content
+        self.post_1.delete()
+        response_after = self.authorized_client.get(
+            reverse('posts:index')).content
+        self.assertEqual(response_before, response_after)
+        cache.clear()
+        response_after = self.authorized_client.get(
+            reverse('posts:index')).content
+        self.assertNotEqual(response_before, response_after)
