@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.views.decorators.cache import cache_page
 
 from .forms import CommentForm, PostForm
-from .models import Group, Post, User
+from .models import Group, Post, User, Follow
 
 NUMBER_DISPLAYED_OBJECTS = 10
 
@@ -35,16 +35,22 @@ def group_posts_list(request, slug):
 
 def profile(request, username):
     author = get_object_or_404(User, username=username)
+    user = request.user
     posts_count = author.posts.count()
     posts = Post.objects.filter(author__username=username)
     page_obj = paginator(posts, request)
-
+    is_follower = Follow.objects.filter(user=user, author=author).exists()
+    #if request.user.is_authenticated:
+    if is_follower:
+        following = True
+    else:
+        following = False
     context = {
         'author': author,
         'post_list': posts_count,
         'page_obj': page_obj,
+        'following': following,
     }
-
     return render(request, 'posts/profile.html', context)
 
 
@@ -122,3 +128,35 @@ def add_comment(request, post_id):
         comment.post = get_object_or_404(Post, pk=post_id)
         comment.save()
     return redirect('posts:post_detail', post_id=post_id)
+
+
+@login_required
+def follow_index(request):
+    '''Страница авторов, на которые подписан пользователь.'''
+    post = Post.objects.filter(author__following__user=request.user)
+    page_obj = paginator(post, request)
+    context = {
+        'page_obj': page_obj,
+    }
+    return render(request, 'posts/follow.html', context)
+
+
+@login_required
+def profile_follow(request, username):
+    '''Подписаться на автора.'''
+    user = request.user
+    author = User.objects.get(username=username)
+    is_follower = Follow.objects.filter(user=user, author=author)
+    if user != author and not is_follower:
+        Follow.objects.create(user=user, author=author)
+    return HttpResponseRedirect(reverse('posts:profile', args=[username]))
+
+
+@login_required
+def profile_unfollow(request, username):
+    '''Отписка от автора.'''
+    author = get_object_or_404(User, username=username)
+    is_follower = Follow.objects.filter(user=request.user, author=author)
+    if is_follower.exists():
+        is_follower.delete()
+    return HttpResponseRedirect(reverse('posts:profile', kwargs={'username': author}))
