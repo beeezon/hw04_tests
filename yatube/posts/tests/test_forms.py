@@ -30,10 +30,6 @@ class PostFormTests(TestCase):
         )
         cls.form = PostFormTests()
 
-        cls.tested_pages = {
-
-        }
-
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()

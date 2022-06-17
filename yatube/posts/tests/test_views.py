@@ -9,7 +9,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from ..models import Group, Post, User
+from ..models import Group, Post, User, Follow
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
@@ -46,12 +46,12 @@ class PostsViewsTests(TestCase):
         time.sleep(0.1)
 
         small_gif = (
-             b'\x47\x49\x46\x38\x39\x61\x02\x00'
-             b'\x01\x00\x80\x00\x00\x00\x00\x00'
-             b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
-             b'\x00\x00\x00\x2C\x00\x00\x00\x00'
-             b'\x02\x00\x01\x00\x00\x02\x02\x0C'
-             b'\x0A\x00\x3B'
+            b'\x47\x49\x46\x38\x39\x61\x02\x00'
+            b'\x01\x00\x80\x00\x00\x00\x00\x00'
+            b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+            b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+            b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+            b'\x0A\x00\x3B'
         )
         uploaded = SimpleUploadedFile(
             name='small.gif',
@@ -191,3 +191,25 @@ class PostsViewsTests(TestCase):
         response_after = self.authorized_client.get(
             reverse('posts:index')).content
         self.assertNotEqual(response_before, response_after)
+
+ #   def test_user_signature(self):
+ #       '''Проверка добавления автора в избранное.'''
+ #       '''Тест редиректа на нужную страницу.'''
+ #       Follow.objects.count()
+ #       response = self.authorized_client.get(
+ #           reverse('posts:profile_follow', kwargs={'username': 'TestUser'}))
+ #       self.assertRedirects(response, reverse(
+ #           'posts:profile', kwargs={'username': 'TestUser'}))
+
+
+#        response = self.authorized_client.get(reverse('posts:follow_index'))
+#        first_object = response.context['page_obj'][0].text
+#        index_post = self.post_1.text
+#        self.assertEqual(index_post, first_object)
+        #test_post = self.post_1.text
+        #self.assertEqual(test_post, test_object)
+
+
+        #first_object = response.context['page_obj'][0].image
+        #index_post = self.post_image.image
+        #self.assertEqual(index_post, first_object)
