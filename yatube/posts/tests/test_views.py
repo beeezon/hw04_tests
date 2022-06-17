@@ -21,6 +21,7 @@ class PostsViewsTests(TestCase):
         super().setUpClass()
         # Создадим запись в БД для проверки доступности адреса
         cls.user = User.objects.create_user(username='TestUser')
+        cls.author = User.objects.create_user(username='TestAuthor')
         cls.group = Group.objects.create(
             title='Тестовая группа',
             slug='test_slug',
@@ -192,20 +193,26 @@ class PostsViewsTests(TestCase):
             reverse('posts:index')).content
         self.assertNotEqual(response_before, response_after)
 
- #   def test_user_signature(self):
- #       '''Проверка добавления автора в избранное.'''
- #       '''Тест редиректа на нужную страницу.'''
- #       Follow.objects.count()
- #       response = self.authorized_client.get(
- #           reverse('posts:profile_follow', kwargs={'username': 'TestUser'}))
- #       self.assertRedirects(response, reverse(
- #           'posts:profile', kwargs={'username': 'TestUser'}))
+    def test_user_signature(self):
+        '''Проверка добавления автора в избранное.'''
+        '''Тест редиректа на нужную страницу.'''
+        response = self.authorized_client.get(
+            reverse('posts:profile_follow', kwargs={'username': 'TestUser'}))
+        self.assertRedirects(response, reverse(
+            'posts:profile', kwargs={'username': 'TestUser'}))
 
 
-#        response = self.authorized_client.get(reverse('posts:follow_index'))
-#        first_object = response.context['page_obj'][0].text
-#        index_post = self.post_1.text
-#        self.assertEqual(index_post, first_object)
+
+        Follow.objects.create(user=self.user, author=self.author)
+        response = self.authorized_client.get(
+            reverse('posts:profile_follow', kwargs={'username': 'TestUser'}))
+        followers_count = self.user.follower.count()
+        print(followers_count)
+        
+        
+        #object = response.context['page_obj'][0].text
+        #index_post = self.post_1.text
+        #self.assertEqual(index_post, object)
         #test_post = self.post_1.text
         #self.assertEqual(test_post, test_object)
 
