@@ -35,12 +35,13 @@ def group_posts_list(request, slug):
 
 def profile(request, username):
     author = get_object_or_404(User, username=username)
-    user = request.user
     posts_count = author.posts.count()
     posts = Post.objects.filter(author__username=username)
     page_obj = paginator(posts, request)
-    is_follower = Follow.objects.filter(user=user, author=author).exists()
-    #if request.user.is_authenticated:
+    is_follower = Follow.objects.filter(
+        user=request.user,
+        author=get_object_or_404(User, username=username)
+    ).exists() if request.user.is_authenticated else False
     if is_follower:
         following = True
     else:
@@ -159,4 +160,5 @@ def profile_unfollow(request, username):
     is_follower = Follow.objects.filter(user=request.user, author=author)
     if is_follower.exists():
         is_follower.delete()
-    return HttpResponseRedirect(reverse('posts:profile', kwargs={'username': author}))
+    return HttpResponseRedirect(reverse(
+        'posts:profile', kwargs={'username': author}))
