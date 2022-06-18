@@ -9,7 +9,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from ..models import Group, Post, User, Follow
+from ..models import Group, Post, User
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
@@ -194,29 +194,28 @@ class PostsViewsTests(TestCase):
         self.assertNotEqual(response_before, response_after)
 
     def test_user_signature(self):
-        '''Проверка добавления автора в избранное.'''
-        '''Тест редиректа на нужную страницу.'''
-        response = self.authorized_client.get(
-            reverse('posts:profile_follow', kwargs={'username': 'TestUser'}))
-        self.assertRedirects(response, reverse(
-            'posts:profile', kwargs={'username': 'TestUser'}))
-
-
-
-        Follow.objects.create(user=self.user, author=self.author)
-        response = self.authorized_client.get(
-            reverse('posts:profile_follow', kwargs={'username': 'TestUser'}))
+        '''Проверяем добавление и удаление подписок.'''
         followers_count = self.user.follower.count()
-        print(followers_count)
-        
-        
-        #object = response.context['page_obj'][0].text
-        #index_post = self.post_1.text
-        #self.assertEqual(index_post, object)
-        #test_post = self.post_1.text
-        #self.assertEqual(test_post, test_object)
+        self.assertFalse(followers_count)
+        self.authorized_client.get(
+            reverse('posts:profile_follow', kwargs={'username': 'TestAuthor'}))
+        followers_count = self.user.follower.count()
+        self.assertTrue(followers_count)
+        self.authorized_client.get(
+            reverse(
+                'posts:profile_unfollow', kwargs={'username': 'TestAuthor'}))
+        followers_count = self.user.follower.count()
+        self.assertFalse(followers_count)
 
-
-        #first_object = response.context['page_obj'][0].image
-        #index_post = self.post_image.image
-        #self.assertEqual(index_post, first_object)
+    def test_adding_to_favorites(self):
+        post_follow = Post.objects.create(
+            text='Тест добавления в избранное',
+            author=self.author,
+            group=self.group,
+        )
+        self.authorized_client.get(
+            reverse('posts:profile_follow', kwargs={'username': 'TestAuthor'}))
+        response = self.authorized_client.get(
+            reverse('posts:follow_index'))
+        object_follow_index = response.context['page_obj'][0]
+        self.assertEqual(object_follow_index, post_follow)

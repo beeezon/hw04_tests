@@ -13,6 +13,7 @@ class StaticURLTests(TestCase):
         super().setUpClass()
         # Создадим запись в БД для проверки доступности адреса
         cls.user = User.objects.create_user(username='TestUser')
+        cls.author = User.objects.create_user(username='TestAuthor')
         cls.post = Post.objects.create(
             text='Тестовый текст',
             author=cls.user,
@@ -83,3 +84,10 @@ class StaticURLTests(TestCase):
         # созданный в setUp()
         response = self.guest_client.get('/')
         self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_redirect_following(self):
+        '''Тест редиректа на нужную страницу.'''
+        response = self.authorized_client.get(
+            reverse('posts:profile_follow', kwargs={'username': 'TestAuthor'}))
+        self.assertRedirects(response, reverse(
+            'posts:profile', kwargs={'username': 'TestAuthor'}))
